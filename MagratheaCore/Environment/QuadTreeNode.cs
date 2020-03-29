@@ -19,13 +19,17 @@ namespace MagratheaCore.Environment
         private const float EdgeLengthLimit = 10;
         private const float SplitDistanceMultiplier = 4;
 
-        private const int MaxChildCreationDepth = 1;
+        private const int MaxChildCreationDepth = 2;
 
         #endregion
 
         #region Fields
 
         private static Dictionary<IndexBufferSelection, IndexBuffer> _indexBuffers;
+
+        private readonly GraphicsDevice _graphicsDevice;
+
+        private readonly HeightProvider _heightProvider;
 
         private readonly NodeType _nodeType;
 
@@ -81,6 +85,10 @@ namespace MagratheaCore.Environment
 
         public QuadTreeNode(GraphicsDevice graphicsDevice, HeightProvider heightProvider, NodeType nodeType, QuadTreeNode parentNode, float edgeLengthFlat, Vector3Double originPositionFlat, Vector3 upDirectionFlat, Vector3 rightDirectionFlat, float radiusSphere)
         {
+            _graphicsDevice = graphicsDevice;
+
+            _heightProvider = heightProvider;
+
             _nodeType = nodeType;
 
             _parentNode = parentNode;
@@ -96,9 +104,7 @@ namespace MagratheaCore.Environment
 
             Vector3 originPositionSphereNormal = Vector3Double.Normalize(_originPositionFlat);
             Vector3Double originPositionSpherePosition = new Vector3Double(_radiusSphere*originPositionSphereNormal);
-            OriginPositionSphere = originPositionSpherePosition + heightProvider.GetHeight(originPositionSpherePosition)*originPositionSphereNormal;
-
-            CalculateContents(graphicsDevice, heightProvider);
+            OriginPositionSphere = originPositionSpherePosition + _heightProvider.GetHeight(originPositionSpherePosition)*originPositionSphereNormal;
 
             IndexBuffer = _indexBuffers[IndexBufferSelection.Base];
         }
@@ -194,7 +200,7 @@ namespace MagratheaCore.Environment
             return result;
         }
 
-        private void CalculateContents(GraphicsDevice graphicsDevice, HeightProvider heightProvider)
+        private void CalculateContents()
         {
             float vertexSpacingFlat = _edgeLengthFlat/(VerticesPerEdge - 1);
 
@@ -210,10 +216,10 @@ namespace MagratheaCore.Environment
 
                     Vector3 positionWorldSphereNormal = Vector3Double.Normalize(positionWorldFlat);
                     Vector3Double positionWorldSpherePosition = new Vector3Double(_radiusSphere*positionWorldSphereNormal);
-                    Vector3Double positionWorldSphere = positionWorldSpherePosition + heightProvider.GetHeight(positionWorldSpherePosition)*positionWorldSphereNormal;
+                    Vector3Double positionWorldSphere = positionWorldSpherePosition + _heightProvider.GetHeight(positionWorldSpherePosition)*positionWorldSphereNormal;
 
                     Vector3 position = (positionWorldSphere - OriginPositionSphere).ToVector3();
-                    Vector3 normal = heightProvider.GetNormalFromFiniteOffset(positionWorldSpherePosition);
+                    Vector3 normal = _heightProvider.GetNormalFromFiniteOffset(positionWorldSpherePosition);
 
                     TerrainVertex vertex = new TerrainVertex(position, normal);
                     resultVertices.Add(vertex);
@@ -225,7 +231,7 @@ namespace MagratheaCore.Environment
 
             TerrainVertex[] resultVerticesData = resultVertices.ToArray();
 
-            VertexBuffer = new VertexBuffer(graphicsDevice, TerrainVertex.VertexDeclaration, resultVerticesData.Length, BufferUsage.WriteOnly);
+            VertexBuffer = new VertexBuffer(_graphicsDevice, TerrainVertex.VertexDeclaration, resultVerticesData.Length, BufferUsage.WriteOnly);
             VertexBuffer.SetData(resultVerticesData);
 
             BoundingBox = new BoundingBox(min, max);
@@ -293,6 +299,11 @@ namespace MagratheaCore.Environment
                     _hasChildren = false;
                 }
                 
+                if (VertexBuffer == null)
+                {
+                    CalculateContents();
+                }
+
                 renderQueue.Add(this);
             }
         }
@@ -445,7 +456,10 @@ namespace MagratheaCore.Environment
                 ChildDownLeft.Dispose();
             }
 
-            VertexBuffer.Dispose();
+            if (VertexBuffer != null)
+            {
+                VertexBuffer.Dispose();
+            }
         }
 
         public void Dispose()
