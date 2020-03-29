@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1062
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagratheaWindows", "MagratheaWindows\MagratheaWindows.csproj", "{629C876F-9377-4D4A-BC9A-074B2BE9C4FF}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "MagratheaCore", "MagratheaCore\MagratheaCore.shproj", "{A0CDBD0E-3A41-42B7-9425-A838BC2C7383}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		MagratheaCore\MagratheaCore.projitems*{629c876f-9377-4d4a-bc9a-074b2be9c4ff}*SharedItemsImports = 4
+		MagratheaCore\MagratheaCore.projitems*{a0cdbd0e-3a41-42b7-9425-a838bc2c7383}*SharedItemsImports = 13
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{629C876F-9377-4D4A-BC9A-074B2BE9C4FF}.Debug|x86.ActiveCfg = Debug|x86
+		{629C876F-9377-4D4A-BC9A-074B2BE9C4FF}.Debug|x86.Build.0 = Debug|x86
+		{629C876F-9377-4D4A-BC9A-074B2BE9C4FF}.Release|x86.ActiveCfg = Release|x86
+		{629C876F-9377-4D4A-BC9A-074B2BE9C4FF}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {48183F5C-C371-4708-9C38-496035AC8F3F}
+	EndGlobalSection
+EndGlobal

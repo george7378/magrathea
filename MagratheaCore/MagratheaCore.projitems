@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>1d557878-66cc-454f-a709-7f3c3d75ba93</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>MagratheaCore</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Environment\DirectionLight.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Environment\Enums\IndexBufferSelection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Environment\Enums\NodeType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Environment\HeightProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Environment\QuadTreeNode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Environment\Star.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Environment\StarDome.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Environment\TerrainHeightProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Environment\TerrainVertex.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Environment\World.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MagratheaGame.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utility\CentredCamera.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utility\Globals.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utility\NoiseProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utility\Vector3Double.cs" />
+  </ItemGroup>
+</Project>
