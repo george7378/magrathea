@@ -42,7 +42,6 @@ C:\Users\Victor\Desktop\magrathea\MagratheaWindows\bin\Windows\x86\Debug\SharpDX
 C:\Users\Victor\Desktop\magrathea\MagratheaWindows\bin\Windows\x86\Debug\SharpDX.Direct3D11.xml
 C:\Users\Victor\Desktop\magrathea\MagratheaWindows\bin\Windows\x86\Debug\SharpDX.Direct2D1.xml
 C:\Users\Victor\Desktop\magrathea\MagratheaWindows\bin\Windows\x86\Debug\SharpDX.XInput.xml
-C:\Users\Victor\Desktop\magrathea\MagratheaWindows\obj\x86\Debug\MagratheaWindows.csprojAssemblyReference.cache
 C:\Users\Victor\Desktop\magrathea\MagratheaWindows\obj\x86\Debug\MagratheaWindows.csproj.CoreCompileInputs.cache
 C:\Users\Victor\Desktop\magrathea\MagratheaWindows\obj\x86\Debug\MagratheaWindows.csproj.CopyComplete
 C:\Users\Victor\Desktop\magrathea\MagratheaWindows\obj\x86\Debug\Magrathea.exe
