@@ -173,13 +173,13 @@ namespace MagratheaCore
 		/// </summary>
 		protected override void Initialize()
 		{
-			QuadTreeNode.CalculateIndexBuffers(GraphicsDevice);
+			QuadTreeNode.CalculateIndexData(GraphicsDevice);
 
 			_oldMouseState = Mouse.GetState();
 			_oldKeyboardState = Keyboard.GetState();
 
 			int worldSeed = 1;
-			NoiseProvider mainNoiseProvider = new NoiseProvider(worldSeed, 4, 0.2f, 3000);
+			NoiseProvider mainNoiseProvider = new NoiseProvider(worldSeed, 4, 0.3f, 6000);
 			NoiseProvider modulationNoiseProvider = new NoiseProvider(worldSeed + 1, 2, 0.2f, 50000);
 			DirectionLight light = new DirectionLight(Vector3.Normalize(new Vector3(0, -0.3f, 1)), 1, 0.1f);
 			_world = new World(GraphicsDevice, new TerrainHeightProvider(mainNoiseProvider, modulationNoiseProvider), 1737000, light, new Random(worldSeed));

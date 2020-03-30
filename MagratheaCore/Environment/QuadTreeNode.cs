@@ -4,11 +4,51 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MagratheaCore.Environment
 {
 	public class QuadTreeNode : IDisposable
 	{
+		#region Classes
+
+		/// <summary>
+		/// Used to hold interstitial information about terrain vertices while the buffer data is calculated
+		/// </summary>
+		private class TerrainVertexInterstitial
+		{
+			#region Properties
+
+			public Vector3 Position { get; set; }
+
+			public Vector3 Normal { get; set; }
+
+			public bool IncludeInBuffer { get; set; }
+
+			#endregion
+
+			#region Constructors
+
+			public TerrainVertexInterstitial(Vector3 position, bool includeInBuffer)
+			{
+				Position = position;
+				IncludeInBuffer = includeInBuffer;
+			}
+
+			#endregion
+
+			#region Methods
+
+			public TerrainVertex ToTerrainVertex()
+			{
+				return new TerrainVertex(Position, Normal);
+			}
+
+			#endregion
+		}
+
+		#endregion
+
 		#region Constants
 
 		/// <summary>
@@ -25,6 +65,7 @@ namespace MagratheaCore.Environment
 
 		#region Fields
 
+		private static ushort[] _normalCalculationIndices;
 		private static Dictionary<IndexBufferSelection, IndexBuffer> _indexBuffers;
 
 		private readonly GraphicsDevice _graphicsDevice;
@@ -116,25 +157,27 @@ namespace MagratheaCore.Environment
 		/// <summary>
 		/// Resulting triangles are wound CCW and filled from down-left to up-right
 		/// </summary>
-		private static IndexBuffer CalculateIndexBuffer(GraphicsDevice graphicsDevice, bool upCrackFix, bool rightCrackFix, bool downCrackFix, bool leftCrackFix)
+		private static ushort[] CalculateIndices(bool upCrackFix, bool rightCrackFix, bool downCrackFix, bool leftCrackFix, int borderSize)
 		{
+			int verticesPerEdgeWithBorder = VerticesPerEdge + 2*borderSize;
+
 			List<ushort> resultIndices = new List<ushort>();
-			for (int y = 0; y < VerticesPerEdge - 1; y++)
+			for (int y = 0; y < verticesPerEdgeWithBorder - 1; y++)
 			{
 				bool slantRight = y % 2 == 0;
 
-				for (int x = 0; x < VerticesPerEdge - 1; x++)
+				for (int x = 0; x < verticesPerEdgeWithBorder - 1; x++)
 				{
-					ushort dlIndex = (ushort)(x + y*VerticesPerEdge);
+					ushort dlIndex = (ushort)(x + y*verticesPerEdgeWithBorder);
 					ushort drIndex = (ushort)(dlIndex + 1);
-					ushort ulIndex = (ushort)(x + (y + 1)*VerticesPerEdge);
+					ushort ulIndex = (ushort)(x + (y + 1)*verticesPerEdgeWithBorder);
 					ushort urIndex = (ushort)(ulIndex + 1);
 
 					ushort[] triangle1 = slantRight ? new ushort[3] { ulIndex, dlIndex, urIndex } : new ushort[3] { ulIndex, dlIndex, drIndex };
 					ushort[] triangle2 = slantRight ?  new ushort[3] { dlIndex, drIndex, urIndex } : new ushort[3] { ulIndex, drIndex, urIndex };
 
 					// Perform requested crack fixing
-					if (upCrackFix && y == VerticesPerEdge - 2)
+					if (upCrackFix && y == verticesPerEdgeWithBorder - 2)
 					{
 						if (x % 2 == 0)
 						{
@@ -145,11 +188,11 @@ namespace MagratheaCore.Environment
 							triangle1 = null;
 						}
 					}
-					if (rightCrackFix && x == VerticesPerEdge - 2)
+					if (rightCrackFix && x == verticesPerEdgeWithBorder - 2)
 					{
 						if (y % 2 == 0)
 						{
-							triangle2 = new ushort[3] { (ushort)(urIndex + VerticesPerEdge), ulIndex, drIndex };
+							triangle2 = new ushort[3] { (ushort)(urIndex + verticesPerEdgeWithBorder), ulIndex, drIndex };
 						}
 						else
 						{
@@ -171,7 +214,7 @@ namespace MagratheaCore.Environment
 					{
 						if (y % 2 == 0)
 						{
-							triangle1 = new ushort[3] { dlIndex, urIndex, (ushort)(ulIndex + VerticesPerEdge) };
+							triangle1 = new ushort[3] { dlIndex, urIndex, (ushort)(ulIndex + verticesPerEdgeWithBorder) };
 						}
 						else
 						{
@@ -192,10 +235,13 @@ namespace MagratheaCore.Environment
 				}
 			}
 
-			ushort[] resultIndicesData = resultIndices.ToArray();
+			return resultIndices.ToArray();
+		}
 
-			IndexBuffer result = new IndexBuffer(graphicsDevice, typeof(ushort), resultIndicesData.Length, BufferUsage.WriteOnly);
-			result.SetData(resultIndicesData);
+		private static IndexBuffer CreateIndexBuffer(GraphicsDevice graphicsDevice, ushort[] indices)
+		{
+			IndexBuffer result = new IndexBuffer(graphicsDevice, typeof(ushort), indices.Length, BufferUsage.WriteOnly);
+			result.SetData(indices);
 
 			return result;
 		}
@@ -207,10 +253,11 @@ namespace MagratheaCore.Environment
 			Vector3 min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
 			Vector3 max = new Vector3(float.MinValue, float.MinValue, float.MinValue);
 
-			List<TerrainVertex> resultVertices = new List<TerrainVertex>();
-			for (int y = 0; y < VerticesPerEdge; y++)
+			// We're adding a border of 1 extra vertex for smooth normal calculations
+			List<TerrainVertexInterstitial> interstitialVertices = new List<TerrainVertexInterstitial>();
+			for (int y = -1; y < VerticesPerEdge + 1; y++)
 			{
-				for (int x = 0; x < VerticesPerEdge; x++)
+				for (int x = -1; x < VerticesPerEdge + 1; x++)
 				{
 					Vector3Double positionWorldFlat = _originPositionFlat + (x*vertexSpacingFlat - _halfEdgeLengthFlat)*_rightDirectionFlat + (y*vertexSpacingFlat - _halfEdgeLengthFlat)*_upDirectionFlat;
 
@@ -219,41 +266,70 @@ namespace MagratheaCore.Environment
 					Vector3Double positionWorldSphere = positionWorldSpherePosition + _heightProvider.GetHeight(positionWorldSpherePosition)*positionWorldSphereNormal;
 
 					Vector3 position = (positionWorldSphere - OriginPositionSphere).ToVector3();
-					Vector3 normal = _heightProvider.GetNormalFromFiniteOffset(positionWorldSpherePosition);
+					bool includeInMesh = y > -1 && y < VerticesPerEdge && x > -1 && x < VerticesPerEdge;
 
-					TerrainVertex vertex = new TerrainVertex(position, normal);
-					resultVertices.Add(vertex);
+					TerrainVertexInterstitial vertex = new TerrainVertexInterstitial(position, includeInMesh);
+					interstitialVertices.Add(vertex);
 
-					min = Vector3.Min(min, vertex.Position);
-					max = Vector3.Max(max, vertex.Position);
+					if (includeInMesh)
+					{
+						min = Vector3.Min(min, vertex.Position);
+						max = Vector3.Max(max, vertex.Position);
+					}
 				}
 			}
 
-			TerrainVertex[] resultVerticesData = resultVertices.ToArray();
+			BoundingBox = new BoundingBox(min, max);
+
+			// Accumulate normals
+			for (int i = 0; i < _normalCalculationIndices.Length/3; i++)
+			{
+				int startIndexLocation = i*3;
+
+				TerrainVertexInterstitial vertex1 = interstitialVertices.ElementAt(_normalCalculationIndices[startIndexLocation]);
+				TerrainVertexInterstitial vertex2 = interstitialVertices.ElementAt(_normalCalculationIndices[startIndexLocation + 1]);
+				TerrainVertexInterstitial vertex3 = interstitialVertices.ElementAt(_normalCalculationIndices[startIndexLocation + 2]);
+
+				Vector3 side1 = vertex1.Position - vertex3.Position;
+				Vector3 side2 = vertex1.Position - vertex2.Position;
+				Vector3 normal = Vector3.Cross(side1, side2);
+
+				vertex1.Normal += normal;
+				vertex2.Normal += normal;
+				vertex3.Normal += normal;
+			}
+
+			// Normalise normals
+			foreach (TerrainVertexInterstitial vertex in interstitialVertices)
+			{
+				vertex.Normal.Normalize();
+			}
+
+			TerrainVertex[] resultVerticesData = interstitialVertices.Where(v => v.IncludeInBuffer).Select(v => v.ToTerrainVertex()).ToArray();
 
 			VertexBuffer = new VertexBuffer(_graphicsDevice, TerrainVertex.VertexDeclaration, resultVerticesData.Length, BufferUsage.WriteOnly);
 			VertexBuffer.SetData(resultVerticesData);
-
-			BoundingBox = new BoundingBox(min, max);
 		}
 
 		#endregion
 
 		#region Methods
 
-		public static void CalculateIndexBuffers(GraphicsDevice graphicsDevice)
+		public static void CalculateIndexData(GraphicsDevice graphicsDevice)
 		{
+			_normalCalculationIndices = CalculateIndices(false, false, false, false, 1);
+
 			_indexBuffers = new Dictionary<IndexBufferSelection, IndexBuffer>
 			{
-				{ IndexBufferSelection.Base, CalculateIndexBuffer(graphicsDevice, false, false, false, false) },
-				{ IndexBufferSelection.UCrackFix, CalculateIndexBuffer(graphicsDevice, true, false, false, false) },
-				{ IndexBufferSelection.RCrackFix, CalculateIndexBuffer(graphicsDevice, false, true, false, false) },
-				{ IndexBufferSelection.DCrackFix, CalculateIndexBuffer(graphicsDevice, false, false, true, false) },
-				{ IndexBufferSelection.LCrackFix, CalculateIndexBuffer(graphicsDevice, false, false, false, true) },
-				{ IndexBufferSelection.ULCrackFix, CalculateIndexBuffer(graphicsDevice, true, false, false, true) },
-				{ IndexBufferSelection.URCrackFix, CalculateIndexBuffer(graphicsDevice, true, true, false, false) },
-				{ IndexBufferSelection.DRCrackFix, CalculateIndexBuffer(graphicsDevice, false, true, true, false) },
-				{ IndexBufferSelection.DLCrackFix, CalculateIndexBuffer(graphicsDevice, false, false, true, true) }
+				{ IndexBufferSelection.Base, CreateIndexBuffer(graphicsDevice, CalculateIndices(false, false, false, false, 0)) },
+				{ IndexBufferSelection.UCrackFix, CreateIndexBuffer(graphicsDevice, CalculateIndices(true, false, false, false, 0)) },
+				{ IndexBufferSelection.RCrackFix, CreateIndexBuffer(graphicsDevice, CalculateIndices(false, true, false, false, 0)) },
+				{ IndexBufferSelection.DCrackFix, CreateIndexBuffer(graphicsDevice, CalculateIndices(false, false, true, false, 0)) },
+				{ IndexBufferSelection.LCrackFix, CreateIndexBuffer(graphicsDevice, CalculateIndices(false, false, false, true, 0)) },
+				{ IndexBufferSelection.ULCrackFix, CreateIndexBuffer(graphicsDevice, CalculateIndices(true, false, false, true, 0)) },
+				{ IndexBufferSelection.URCrackFix, CreateIndexBuffer(graphicsDevice, CalculateIndices(true, true, false, false, 0)) },
+				{ IndexBufferSelection.DRCrackFix, CreateIndexBuffer(graphicsDevice, CalculateIndices(false, true, true, false, 0)) },
+				{ IndexBufferSelection.DLCrackFix, CreateIndexBuffer(graphicsDevice, CalculateIndices(false, false, true, true, 0)) }
 			};
 		}
 
