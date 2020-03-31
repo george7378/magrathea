@@ -23,6 +23,8 @@ namespace MagratheaCore.Environment
 
 			public Vector3 Normal { get; set; }
 
+			public Color BaseColour { get; set; }
+
 			public bool IncludeInBuffer { get; set; }
 
 			#endregion
@@ -41,7 +43,7 @@ namespace MagratheaCore.Environment
 
 			public TerrainVertex ToTerrainVertex()
 			{
-				return new TerrainVertex(Position, Normal);
+				return new TerrainVertex(Position, Normal, BaseColour);
 			}
 
 			#endregion
@@ -56,7 +58,7 @@ namespace MagratheaCore.Environment
 		/// </summary>
 		private const int VerticesPerEdge = 15;
 
-		private const float EdgeLengthLimit = 10;
+		private const float EdgeLengthLimit = 1000;
 		private const float SplitDistanceMultiplier = 4;
 
 		private const int MaxChildCreationDepth = 2;
@@ -263,19 +265,24 @@ namespace MagratheaCore.Environment
 
 					Vector3 positionWorldSphereNormal = Vector3Double.Normalize(positionWorldFlat);
 					Vector3Double positionWorldSpherePosition = new Vector3Double(_radiusSphere*positionWorldSphereNormal);
-					Vector3Double positionWorldSphere = positionWorldSpherePosition + _heightProvider.GetHeight(positionWorldSpherePosition)*positionWorldSphereNormal;
+					float positionWorldSphereHeight = _heightProvider.GetHeight(positionWorldSpherePosition);
+					Vector3Double positionWorldSphere = positionWorldSpherePosition + positionWorldSphereHeight*positionWorldSphereNormal;
 
 					Vector3 position = (positionWorldSphere - OriginPositionSphere).ToVector3();
 					bool includeInMesh = y > -1 && y < VerticesPerEdge && x > -1 && x < VerticesPerEdge;
 
 					TerrainVertexInterstitial vertex = new TerrainVertexInterstitial(position, includeInMesh);
-					interstitialVertices.Add(vertex);
 
 					if (includeInMesh)
 					{
+						float baseColourValue = Globals.CosineInterpolate(0.7f, 0.9f, (positionWorldSphereHeight - 50)/(500 - 50));
+						vertex.BaseColour = new Color(baseColourValue, baseColourValue, baseColourValue);
+
 						min = Vector3.Min(min, vertex.Position);
 						max = Vector3.Max(max, vertex.Position);
 					}
+
+					interstitialVertices.Add(vertex);
 				}
 			}
 
@@ -299,13 +306,15 @@ namespace MagratheaCore.Environment
 				vertex3.Normal += normal;
 			}
 
+			List<TerrainVertexInterstitial> interstitialVerticesForBuffer = interstitialVertices.Where(v => v.IncludeInBuffer).ToList();
+
 			// Normalise normals
-			foreach (TerrainVertexInterstitial vertex in interstitialVertices)
+			foreach (TerrainVertexInterstitial vertex in interstitialVerticesForBuffer)
 			{
 				vertex.Normal.Normalize();
 			}
 
-			TerrainVertex[] resultVerticesData = interstitialVertices.Where(v => v.IncludeInBuffer).Select(v => v.ToTerrainVertex()).ToArray();
+			TerrainVertex[] resultVerticesData = interstitialVerticesForBuffer.Select(v => v.ToTerrainVertex()).ToArray();
 
 			VertexBuffer = new VertexBuffer(_graphicsDevice, TerrainVertex.VertexDeclaration, resultVerticesData.Length, BufferUsage.WriteOnly);
 			VertexBuffer.SetData(resultVerticesData);

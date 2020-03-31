@@ -18,7 +18,6 @@ float LightPower;
 float AmbientLightPower;
 
 float3 LightDirection;
-float3 BaseColour;
 
 
 //////////////////
@@ -26,14 +25,16 @@ float3 BaseColour;
 //////////////////
 struct VertexShaderInput
 {
-	float4 Position : POSITION0;
-	float3 Normal   : NORMAL0;
+	float4 Position   : POSITION0;
+	float3 Normal     : NORMAL0;
+	float4 BaseColour : COLOR0;
 };
 
 struct VertexShaderOutput
 {
-	float4 Position : POSITION0;
-	float3 Normal   : TEXCOORD0;
+	float4 Position   : POSITION0;
+	float3 Normal     : TEXCOORD0;
+	float4 BaseColour : COLOR0;
 };
 
 
@@ -46,6 +47,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 	output.Position = mul(input.Position, WorldViewProjection);
 	output.Normal = normalize(mul(input.Normal, (float3x3)World));
+	output.BaseColour = input.BaseColour;
 
 	return output;
 }
@@ -54,7 +56,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
 	float diffuseLightingFactor = saturate(dot(-LightDirection, input.Normal))*LightPower;
 
-	float4 finalColour = float4(BaseColour*(AmbientLightPower + diffuseLightingFactor), 1.0f);
+	float4 finalColour = float4(input.BaseColour.rgb*(AmbientLightPower + diffuseLightingFactor), input.BaseColour.a);
 
 	return finalColour;
 }

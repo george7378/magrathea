@@ -34,6 +34,7 @@ namespace MagratheaCore.Environment
         public override float GetHeight(double x, double y, double z)
         {
             float mainHeight = MainNoiseProvider.GetValue(x, y, z);
+            mainHeight = (float)Math.Pow(mainHeight, 3);
 
             float modulationHeight = ModulationNoiseProvider.GetValue(x, y, z);
             modulationHeight = (float)Math.Pow(modulationHeight, 2);

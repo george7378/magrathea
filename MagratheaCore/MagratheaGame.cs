@@ -52,7 +52,6 @@ namespace MagratheaCore
 			_terrainEffect.Parameters["LightPower"].SetValue(_world.Light.Power);
 			_terrainEffect.Parameters["AmbientLightPower"].SetValue(_world.Light.AmbientPower);
 			_terrainEffect.Parameters["LightDirection"].SetValue(_world.Light.Direction);
-			_terrainEffect.Parameters["BaseColour"].SetValue(Color.LightGray.ToVector3());
 
 			foreach (QuadTreeNode node in _world.RenderQueue)
 			{
@@ -81,8 +80,6 @@ namespace MagratheaCore
 
 		private void DrawSky()
 		{
-			Matrix skyViewMatrix = Matrix.CreateLookAt(Vector3.Zero, _camera.Orientation.Forward, _camera.Orientation.Up);
-
 			_spriteBatch.Begin();
 
 			// Stars
@@ -90,7 +87,8 @@ namespace MagratheaCore
 			{
 				if (Vector3.Dot(_camera.Orientation.Forward, star.DomePosition) > 0)
 				{
-					Vector3 starScreenPosition = GraphicsDevice.Viewport.Project(star.DomePosition, _camera.ProjectionMatrix, skyViewMatrix, Matrix.Identity);
+					Vector3 starScreenPosition = GraphicsDevice.Viewport.Project(star.DomePosition, _camera.ProjectionMatrix, _camera.ViewMatrix, Matrix.Identity);
+
 					_spriteBatch.Draw(_starTexture, new Vector2((int)starScreenPosition.X, (int)starScreenPosition.Y), null, star.Colour, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
 				}
 			}
@@ -98,7 +96,8 @@ namespace MagratheaCore
 			// Sun
 			if (Vector3.Dot(_camera.Orientation.Forward, -_world.Light.Direction) > 0)
 			{
-				Vector3 sunScreenPosition = GraphicsDevice.Viewport.Project(-_world.Light.Direction, _camera.ProjectionMatrix, skyViewMatrix, Matrix.Identity);
+				Vector3 sunScreenPosition = GraphicsDevice.Viewport.Project(-_world.Light.Direction, _camera.ProjectionMatrix, _camera.ViewMatrix, Matrix.Identity);
+
 				_spriteBatch.Draw(_sunTexture, new Vector2(sunScreenPosition.X, sunScreenPosition.Y), null, Color.White, 0, new Vector2(128, 128), 1, SpriteEffects.None, 0);
 			}
 
@@ -130,7 +129,7 @@ namespace MagratheaCore
 
 			if (_oldKeyboardState.IsKeyDown(Keys.Down) && newKeyboardState.IsKeyUp(Keys.Down))
 			{
-				_camera.MovementSpeed = _camera.MovementSpeed > 1 ? _camera.MovementSpeed/10 : _camera.MovementSpeed;
+				_camera.MovementSpeed = _camera.MovementSpeed > 10 ? _camera.MovementSpeed/10 : _camera.MovementSpeed;
 			}
 
 			// Camera movement
@@ -151,7 +150,7 @@ namespace MagratheaCore
 				newMouseState = Mouse.GetState();
 			}
 
-			Matrix rollDelta = Matrix.CreateFromAxisAngle(_camera.Orientation.Forward, 0.02f*(newKeyboardState.IsKeyDown(Keys.Q) ? -1 : newKeyboardState.IsKeyDown(Keys.E) ? 1 : 0));
+			Matrix rollDelta = Matrix.CreateFromAxisAngle(_camera.Orientation.Forward, 0.01f*(newKeyboardState.IsKeyDown(Keys.Q) ? -1 : newKeyboardState.IsKeyDown(Keys.E) ? 1 : 0));
 
 			_camera.Orientation = Globals.OrthonormaliseMatrix(_camera.Orientation*yawDelta*pitchDelta*rollDelta);
 
