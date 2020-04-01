@@ -20,13 +20,16 @@ namespace MagratheaCore
 		private CentredCamera _camera;
 
 		private Effect _terrainEffect;
+		private Effect _atmosphrereEffect;
 
 		private Texture2D _sunTexture;
 		private Texture2D _starTexture;
 
+		private Model _atmosphereSkyboxModel;
+
 		private SpriteBatch _spriteBatch;
 
-		private bool _mouseLookActive;
+		private bool _mouseLookActive, _drawAtmosphere;
 
 		#endregion
 
@@ -42,6 +45,23 @@ namespace MagratheaCore
 		#endregion
 
 		#region Private methods
+
+		#region Content loading
+
+		private void LoadAtmosphereSkybox()
+		{
+			_atmosphereSkyboxModel = Content.Load<Model>("Models/AtmosphereSkybox");
+
+			foreach (ModelMesh mesh in _atmosphereSkyboxModel.Meshes)
+			{
+				foreach (ModelMeshPart part in mesh.MeshParts)
+				{
+					part.Effect = _atmosphrereEffect;
+				}
+			}
+		}
+
+		#endregion
 
 		#region Content drawing
 
@@ -80,9 +100,9 @@ namespace MagratheaCore
 
 		private void DrawSky()
 		{
+			// Stars
 			_spriteBatch.Begin();
 
-			// Stars
 			foreach (Star star in _world.StarDome.Stars)
 			{
 				if (Vector3.Dot(_camera.Orientation.Forward, star.DomePosition) > 0)
@@ -93,7 +113,44 @@ namespace MagratheaCore
 				}
 			}
 
+			_spriteBatch.End();
+
+			GraphicsDevice.BlendState = BlendState.Opaque;
+			GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+
+			// Atmosphere
+			if (_drawAtmosphere)
+			{
+				GraphicsDevice.BlendState = BlendState.NonPremultiplied;
+				GraphicsDevice.DepthStencilState = DepthStencilState.None;
+
+				Vector3Double planetVector = -_camera.Position;
+				double planetDistance = planetVector.Length();
+				float planetAltitude = (float)(planetDistance - _world.Radius);
+
+				foreach (ModelMesh mesh in _atmosphereSkyboxModel.Meshes)
+				{
+					foreach (Effect effect in mesh.Effects)
+					{
+						effect.CurrentTechnique = effect.Techniques["AtmosphereTechnique"];
+
+						effect.Parameters["ViewProjection"].SetValue(_camera.ViewMatrix*_camera.ProjectionMatrix);
+						effect.Parameters["CosPlanetAngularRadius"].SetValue((float)Math.Cos(Math.Asin(_world.Radius/planetDistance)));
+						effect.Parameters["FalloffGradient"].SetValue(Globals.LinearInterpolate(0.01f, 0.08f, planetAltitude/30000)*planetAltitude/1000);
+						effect.Parameters["PlanetDirection"].SetValue(Vector3Double.Normalize(planetVector));
+						effect.Parameters["AtmosphereColour"].SetValue(new Vector3(0.3f, 0.5f, 0.9f));
+					}
+
+					mesh.Draw();
+				}
+
+				GraphicsDevice.BlendState = BlendState.Opaque;
+				GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+			}
+
 			// Sun
+			_spriteBatch.Begin();
+
 			if (Vector3.Dot(_camera.Orientation.Forward, -_world.Light.Direction) > 0)
 			{
 				Vector3 sunScreenPosition = GraphicsDevice.Viewport.Project(-_world.Light.Direction, _camera.ProjectionMatrix, _camera.ViewMatrix, Matrix.Identity);
@@ -130,6 +187,11 @@ namespace MagratheaCore
 			if (_oldKeyboardState.IsKeyDown(Keys.Down) && newKeyboardState.IsKeyUp(Keys.Down))
 			{
 				_camera.MovementSpeed = _camera.MovementSpeed > 10 ? _camera.MovementSpeed/10 : _camera.MovementSpeed;
+			}
+
+			if (_oldKeyboardState.IsKeyDown(Keys.Space) && newKeyboardState.IsKeyUp(Keys.Space))
+			{
+				_drawAtmosphere = !_drawAtmosphere;
 			}
 
 			// Camera movement
@@ -186,7 +248,7 @@ namespace MagratheaCore
 			Matrix cameraProjectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(60), GraphicsDevice.Viewport.AspectRatio, CentredCamera.NearPlaneDistance, CentredCamera.FarPlaneDistance);
 			_camera = new CentredCamera()
 			{
-				Position = new Vector3Double(0, 1740000, 0),
+				Position = new Vector3Double(0, _world.Radius + 3000, 0),
 				Orientation = Matrix.Identity,
 				ProjectionMatrix = cameraProjectionMatrix,
 				MovementSpeed = 1000
@@ -207,8 +269,11 @@ namespace MagratheaCore
 		protected override void LoadContent()
 		{
 			_terrainEffect = Content.Load<Effect>("Effects/TerrainEffect");
+			_atmosphrereEffect = Content.Load<Effect>("Effects/AtmosphereEffect");
 
 			_sunTexture = Content.Load<Texture2D>("Textures/sun");
+
+			LoadAtmosphereSkybox();
 		}
 
 		/// <summary>

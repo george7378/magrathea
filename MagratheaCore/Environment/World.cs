@@ -27,6 +27,8 @@ namespace MagratheaCore.Environment
 
         #region Properties
 
+        public float Radius { get; private set; }
+
         public DirectionLight Light { get; set; }
 
         public StarDome StarDome { get; private set; }
@@ -72,6 +74,7 @@ namespace MagratheaCore.Environment
                 new List<QuadTreeNode>()
             };
 
+            Radius = radius;
             Light = light;
             StarDome = new StarDome(starDomeRandom);
             RenderQueue = new List<QuadTreeNode>();

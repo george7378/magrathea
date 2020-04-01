@@ -4,11 +4,15 @@
   <Platform>Windows</Platform>
   <Config />
   <SourceFiles>
+    <File>C:/Users/Victor/Desktop/magrathea/MagratheaWindows/Content/../../MagratheaCore/Content/Effects/AtmosphereEffect.fx</File>
     <File>C:/Users/Victor/Desktop/magrathea/MagratheaWindows/Content/../../MagratheaCore/Content/Effects/TerrainEffect.fx</File>
+    <File>C:/Users/Victor/Desktop/magrathea/MagratheaWindows/Content/../../MagratheaCore/Content/Models/AtmosphereSkybox.x</File>
     <File>C:/Users/Victor/Desktop/magrathea/MagratheaWindows/Content/../../MagratheaCore/Content/Textures/sun.png</File>
   </SourceFiles>
   <DestFiles>
+    <File>Effects/AtmosphereEffect.fx</File>
     <File>Effects/TerrainEffect.fx</File>
+    <File>Models/AtmosphereSkybox.x</File>
     <File>Textures/sun.png</File>
   </DestFiles>
 </SourceFileCollection>

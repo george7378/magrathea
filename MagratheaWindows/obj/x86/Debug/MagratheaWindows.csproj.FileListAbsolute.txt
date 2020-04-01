@@ -23,6 +23,8 @@ C:\Users\Victor\Documents\Visual Studio 2017\Projects\Magrathea\MagratheaWindows
 C:\Users\Victor\Documents\Visual Studio 2017\Projects\Magrathea\MagratheaWindows\obj\x86\Debug\Magrathea.exe
 C:\Users\Victor\Documents\Visual Studio 2017\Projects\Magrathea\MagratheaWindows\obj\x86\Debug\Magrathea.pdb
 C:\Users\Victor\Desktop\magrathea\MagratheaWindows\bin\Windows\x86\Debug\Content\Textures\sun.xnb
+C:\Users\Victor\Desktop\magrathea\MagratheaWindows\bin\Windows\x86\Debug\Content\Models\AtmosphereSkybox.xnb
+C:\Users\Victor\Desktop\magrathea\MagratheaWindows\bin\Windows\x86\Debug\Content\Effects\AtmosphereEffect.xnb
 C:\Users\Victor\Desktop\magrathea\MagratheaWindows\bin\Windows\x86\Debug\Content\Effects\TerrainEffect.xnb
 C:\Users\Victor\Desktop\magrathea\MagratheaWindows\bin\Windows\x86\Debug\Magrathea.exe
 C:\Users\Victor\Desktop\magrathea\MagratheaWindows\bin\Windows\x86\Debug\Magrathea.pdb
