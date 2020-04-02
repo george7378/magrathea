@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <SourceFile>C:/Users/Victor/Desktop/magrathea/MagratheaWindows/Content/../../MagratheaCore/Content/Models/AtmosphereSkybox.x</SourceFile>
-  <SourceTime>2020-03-31T14:18:53.1632502+01:00</SourceTime>
+  <SourceTime>2020-04-02T15:59:18.3747307+01:00</SourceTime>
   <DestFile>C:/Users/Victor/Desktop/magrathea/MagratheaWindows/Content/bin/Windows/Content/Models/AtmosphereSkybox.xnb</DestFile>
-  <DestTime>2020-03-31T14:23:11.035691+01:00</DestTime>
+  <DestTime>2020-04-02T17:30:29.329629+01:00</DestTime>
   <Importer>XImporter</Importer>
   <ImporterTime>2018-12-08T16:35:54+00:00</ImporterTime>
   <Processor>ModelProcessor</Processor>

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <SourceFile>C:/Users/Victor/Desktop/magrathea/MagratheaWindows/Content/../../MagratheaCore/Content/Effects/TerrainEffect.fx</SourceFile>
-  <SourceTime>2020-04-02T15:59:18.3727327+01:00</SourceTime>
-  <DestFile>C:/Users/Victor/Desktop/magrathea/MagratheaWindows/Content/bin/Windows/Content/Effects/TerrainEffect.xnb</DestFile>
-  <DestTime>2020-04-02T17:30:28.917882+01:00</DestTime>
+  <SourceFile>C:/Users/Victor/Desktop/magrathea/MagratheaWindows/Content/../../MagratheaCore/Content/Effects/AtmosphereRaytraceEffect.fx</SourceFile>
+  <SourceTime>2020-04-02T17:08:49.4585035+01:00</SourceTime>
+  <DestFile>C:/Users/Victor/Desktop/magrathea/MagratheaWindows/Content/bin/Windows/Content/Effects/AtmosphereRaytraceEffect.xnb</DestFile>
+  <DestTime>2020-04-02T17:30:28.4911474+01:00</DestTime>
   <Importer>EffectImporter</Importer>
   <ImporterTime>2018-12-08T16:35:54+00:00</ImporterTime>
   <Processor>EffectProcessor</Processor>

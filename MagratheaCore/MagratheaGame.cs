@@ -1,4 +1,5 @@
 using MagratheaCore.Environment;
+using MagratheaCore.Environment.Enums;
 using MagratheaCore.Utility;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -20,7 +21,7 @@ namespace MagratheaCore
 		private CentredCamera _camera;
 
 		private Effect _terrainEffect;
-		private Effect _atmosphrereEffect;
+		private Effect _atmosphereRaytraceEffect, _atmosphereSimpleEffect;
 
 		private Texture2D _sunTexture;
 		private Texture2D _starTexture;
@@ -29,7 +30,7 @@ namespace MagratheaCore
 
 		private SpriteBatch _spriteBatch;
 
-		private bool _mouseLookActive, _drawAtmosphere;
+		private bool _mouseLookActive;
 
 		#endregion
 
@@ -45,23 +46,6 @@ namespace MagratheaCore
 		#endregion
 
 		#region Private methods
-
-		#region Content loading
-
-		private void LoadAtmosphereSkybox()
-		{
-			_atmosphereSkyboxModel = Content.Load<Model>("Models/AtmosphereSkybox");
-
-			foreach (ModelMesh mesh in _atmosphereSkyboxModel.Meshes)
-			{
-				foreach (ModelMeshPart part in mesh.MeshParts)
-				{
-					part.Effect = _atmosphrereEffect;
-				}
-			}
-		}
-
-		#endregion
 
 		#region Content drawing
 
@@ -119,14 +103,29 @@ namespace MagratheaCore
 			GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
 			// Atmosphere
-			if (_drawAtmosphere)
+			if (_world.Atmosphere.RenderMode != AtmosphereRenderMode.None)
 			{
 				GraphicsDevice.BlendState = BlendState.NonPremultiplied;
 				GraphicsDevice.DepthStencilState = DepthStencilState.None;
 
-				Vector3Double planetVector = -_camera.Position;
-				double planetDistance = planetVector.Length();
-				float planetAltitude = (float)(planetDistance - _world.Radius);
+				Effect activeAtmosphereEffect = _world.Atmosphere.RenderMode == AtmosphereRenderMode.Raytrace ? _atmosphereRaytraceEffect : _atmosphereSimpleEffect;
+
+				foreach (ModelMesh mesh in _atmosphereSkyboxModel.Meshes)
+				{
+					foreach (ModelMeshPart part in mesh.MeshParts)
+					{
+						part.Effect = activeAtmosphereEffect;
+					}
+				}
+
+				// Atmosphere rendering calculations involving distance are done in units of planet radii
+				Vector3 cameraPosition = (_camera.Position/_world.Radius).ToVector3();
+				Vector3 planetVector = -cameraPosition;
+				float atmosphereRadius = _world.Atmosphere.Depth/_world.Radius + 1;
+
+				float planetAltitude = planetVector.Length() - 1;
+				float cosPlanetAngularRadius = (float)Math.Cos(Math.Asin(1/(planetAltitude + 1)));
+				float falloffGradient = Globals.LinearInterpolate(0.01f, 0.08f, 50*planetAltitude)*1000*planetAltitude;
 
 				foreach (ModelMesh mesh in _atmosphereSkyboxModel.Meshes)
 				{
@@ -135,10 +134,25 @@ namespace MagratheaCore
 						effect.CurrentTechnique = effect.Techniques["AtmosphereTechnique"];
 
 						effect.Parameters["ViewProjection"].SetValue(_camera.ViewMatrix*_camera.ProjectionMatrix);
-						effect.Parameters["CosPlanetAngularRadius"].SetValue((float)Math.Cos(Math.Asin(_world.Radius/planetDistance)));
-						effect.Parameters["FalloffGradient"].SetValue(Globals.LinearInterpolate(0.01f, 0.08f, planetAltitude/30000)*planetAltitude/1000);
-						effect.Parameters["PlanetDirection"].SetValue(Vector3Double.Normalize(planetVector));
-						effect.Parameters["AtmosphereColour"].SetValue(new Vector3(0.3f, 0.5f, 0.9f));
+						effect.Parameters["AtmosphereColour"].SetValue(_world.Atmosphere.Colour.ToVector3());
+
+						switch (_world.Atmosphere.RenderMode)
+						{
+							case AtmosphereRenderMode.Raytrace:
+								effect.Parameters["PlanetVectorLengthSquared"].SetValue(planetVector.LengthSquared());
+								effect.Parameters["AtmosphereRadiusSquared"].SetValue(atmosphereRadius*atmosphereRadius);
+								effect.Parameters["AtmosphereDepth"].SetValue(atmosphereRadius - 1);
+								effect.Parameters["PlanetVector"].SetValue(planetVector);
+								effect.Parameters["CameraPosition"].SetValue(cameraPosition);
+								effect.Parameters["LightDirection"].SetValue(_world.Light.Direction);
+								break;
+
+							case AtmosphereRenderMode.Simple:
+								effect.Parameters["CosPlanetAngularRadius"].SetValue(cosPlanetAngularRadius);
+								effect.Parameters["FalloffGradient"].SetValue(falloffGradient);
+								effect.Parameters["PlanetDirection"].SetValue(Vector3.Normalize(planetVector));
+								break;
+						}
 					}
 
 					mesh.Draw();
@@ -191,7 +205,20 @@ namespace MagratheaCore
 
 			if (_oldKeyboardState.IsKeyDown(Keys.Space) && newKeyboardState.IsKeyUp(Keys.Space))
 			{
-				_drawAtmosphere = !_drawAtmosphere;
+				switch (_world.Atmosphere.RenderMode)
+				{
+					case AtmosphereRenderMode.None:
+						_world.Atmosphere.RenderMode = AtmosphereRenderMode.Raytrace;
+						break;
+
+					case AtmosphereRenderMode.Raytrace:
+						_world.Atmosphere.RenderMode = AtmosphereRenderMode.Simple;
+						break;
+
+					case AtmosphereRenderMode.Simple:
+						_world.Atmosphere.RenderMode = AtmosphereRenderMode.None;
+						break;
+				}
 			}
 
 			// Camera movement
@@ -243,7 +270,8 @@ namespace MagratheaCore
 			NoiseProvider mainNoiseProvider = new NoiseProvider(worldSeed, 4, 0.3f, 6000);
 			NoiseProvider modulationNoiseProvider = new NoiseProvider(worldSeed + 1, 2, 0.2f, 50000);
 			DirectionLight light = new DirectionLight(Vector3.Normalize(new Vector3(0, -0.3f, 1)), 1, 0.1f);
-			_world = new World(GraphicsDevice, new TerrainHeightProvider(mainNoiseProvider, modulationNoiseProvider), 1737000, light, new Random(worldSeed));
+			Atmosphere atmosphere = new Atmosphere(150000, new Color(0.3f, 0.5f, 0.9f));
+			_world = new World(GraphicsDevice, new TerrainHeightProvider(mainNoiseProvider, modulationNoiseProvider), 1737000, light, new Random(worldSeed), atmosphere);
 
 			Matrix cameraProjectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(60), GraphicsDevice.Viewport.AspectRatio, CentredCamera.NearPlaneDistance, CentredCamera.FarPlaneDistance);
 			_camera = new CentredCamera()
@@ -269,11 +297,12 @@ namespace MagratheaCore
 		protected override void LoadContent()
 		{
 			_terrainEffect = Content.Load<Effect>("Effects/TerrainEffect");
-			_atmosphrereEffect = Content.Load<Effect>("Effects/AtmosphereEffect");
+			_atmosphereRaytraceEffect = Content.Load<Effect>("Effects/AtmosphereRaytraceEffect");
+			_atmosphereSimpleEffect = Content.Load<Effect>("Effects/AtmosphereSimpleEffect");
 
 			_sunTexture = Content.Load<Texture2D>("Textures/sun");
 
-			LoadAtmosphereSkybox();
+			_atmosphereSkyboxModel = Content.Load<Model>("Models/AtmosphereSkybox");
 		}
 
 		/// <summary>

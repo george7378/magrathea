@@ -13,11 +13,17 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin ../../MagratheaCore/Content/Effects/AtmosphereEffect.fx
+#begin ../../MagratheaCore/Content/Effects/AtmosphereRaytraceEffect.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
-/build:../../MagratheaCore/Content/Effects/AtmosphereEffect.fx;Effects/AtmosphereEffect.fx
+/build:../../MagratheaCore/Content/Effects/AtmosphereRaytraceEffect.fx;Effects/AtmosphereRaytraceEffect.fx
+
+#begin ../../MagratheaCore/Content/Effects/AtmosphereSimpleEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:../../MagratheaCore/Content/Effects/AtmosphereSimpleEffect.fx;Effects/AtmosphereSimpleEffect.fx
 
 #begin ../../MagratheaCore/Content/Effects/TerrainEffect.fx
 /importer:EffectImporter

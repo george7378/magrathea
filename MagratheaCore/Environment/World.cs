@@ -33,13 +33,15 @@ namespace MagratheaCore.Environment
 
         public StarDome StarDome { get; private set; }
 
+        public Atmosphere Atmosphere { get; set; }
+
         public List<QuadTreeNode> RenderQueue { get; private set; }
 
         #endregion
 
         #region Constructors
 
-        public World(GraphicsDevice graphicsDevice, HeightProvider heightProvider, float radius, DirectionLight light, Random starDomeRandom)
+        public World(GraphicsDevice graphicsDevice, HeightProvider heightProvider, float radius, DirectionLight light, Random starDomeRandom, Atmosphere atmosphere)
         {
             _graphicsDevice = graphicsDevice;
 
@@ -77,6 +79,7 @@ namespace MagratheaCore.Environment
             Radius = radius;
             Light = light;
             StarDome = new StarDome(starDomeRandom);
+            Atmosphere = atmosphere;
             RenderQueue = new List<QuadTreeNode>();
         }
 

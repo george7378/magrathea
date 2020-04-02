@@ -9,7 +9,9 @@
     <Import_RootNamespace>MagratheaCore</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Environment\Atmosphere.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Environment\DirectionLight.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Environment\Enums\AtmosphereRenderMode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Environment\Enums\IndexBufferSelection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Environment\Enums\NodeType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Environment\HeightProvider.cs" />

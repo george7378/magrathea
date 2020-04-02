@@ -30,8 +30,8 @@ struct VertexShaderInput
 
 struct VertexShaderOutput
 {
-	float4 Position          : POSITION0;
-	float3 SamplingDirection : TEXCOORD0;
+	float4 Position        : POSITION0;
+	float3 SampleDirection : TEXCOORD0;
 };
 
 
@@ -43,14 +43,14 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 	VertexShaderOutput output;
 
 	output.Position = mul(input.Position, ViewProjection);
-	output.SamplingDirection = input.Position.xyz;
+	output.SampleDirection = input.Position.xyz;
 
 	return output;
 }
 
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
-	float planetViewingAngleExponent = -saturate(CosPlanetAngularRadius - dot(PlanetDirection, normalize(input.SamplingDirection)));
+	float planetViewingAngleExponent = -saturate(CosPlanetAngularRadius - dot(PlanetDirection, normalize(input.SampleDirection)));
 	float3 scatteredLightColour = AtmosphereColour*exp(FalloffGradient*planetViewingAngleExponent);
 
 	float4 finalColour = float4(scatteredLightColour, saturate(max(max(scatteredLightColour.r, scatteredLightColour.g), scatteredLightColour.b) + 0.5f));
