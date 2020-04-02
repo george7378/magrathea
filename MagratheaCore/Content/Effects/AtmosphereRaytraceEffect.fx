@@ -115,7 +115,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
 	float3 scatteredLightColour = saturate(AtmosphereColour*averageSampleDensity);
 
-	float4 finalColour = float4(scatteredLightColour, saturate(max(max(scatteredLightColour.r, scatteredLightColour.g), scatteredLightColour.b) + 0.5f));
+	float4 finalColour = float4(scatteredLightColour, saturate(max(max(scatteredLightColour.r, scatteredLightColour.g), scatteredLightColour.b)/0.5f));
 
 	return finalColour;
 }
