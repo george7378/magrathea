@@ -176,7 +176,7 @@ namespace MagratheaCore.Environment
 					ushort urIndex = (ushort)(ulIndex + 1);
 
 					ushort[] triangle1 = slantRight ? new ushort[3] { ulIndex, dlIndex, urIndex } : new ushort[3] { ulIndex, dlIndex, drIndex };
-					ushort[] triangle2 = slantRight ?  new ushort[3] { dlIndex, drIndex, urIndex } : new ushort[3] { ulIndex, drIndex, urIndex };
+					ushort[] triangle2 = slantRight ? new ushort[3] { dlIndex, drIndex, urIndex } : new ushort[3] { ulIndex, drIndex, urIndex };
 
 					// Perform requested crack fixing
 					if (upCrackFix && y == verticesPerEdgeWithBorder - 2)
@@ -289,13 +289,11 @@ namespace MagratheaCore.Environment
 			BoundingBox = new BoundingBox(min, max);
 
 			// Accumulate normals
-			for (int i = 0; i < _normalCalculationIndices.Length/3; i++)
+			for (int i = 0; i < _normalCalculationIndices.Length; i += 3)
 			{
-				int startIndexLocation = i*3;
-
-				TerrainVertexInterstitial vertex1 = interstitialVertices.ElementAt(_normalCalculationIndices[startIndexLocation]);
-				TerrainVertexInterstitial vertex2 = interstitialVertices.ElementAt(_normalCalculationIndices[startIndexLocation + 1]);
-				TerrainVertexInterstitial vertex3 = interstitialVertices.ElementAt(_normalCalculationIndices[startIndexLocation + 2]);
+				TerrainVertexInterstitial vertex1 = interstitialVertices.ElementAt(_normalCalculationIndices[i]);
+				TerrainVertexInterstitial vertex2 = interstitialVertices.ElementAt(_normalCalculationIndices[i + 1]);
+				TerrainVertexInterstitial vertex3 = interstitialVertices.ElementAt(_normalCalculationIndices[i + 2]);
 
 				Vector3 side1 = vertex1.Position - vertex3.Position;
 				Vector3 side2 = vertex1.Position - vertex2.Position;
@@ -311,7 +309,7 @@ namespace MagratheaCore.Environment
 			// Normalise normals
 			foreach (TerrainVertexInterstitial vertex in interstitialVerticesForBuffer)
 			{
-				vertex.Normal.Normalize();
+				vertex.Normal = Vector3.Normalize(vertex.Normal);
 			}
 
 			TerrainVertex[] resultVerticesData = interstitialVerticesForBuffer.Select(v => v.ToTerrainVertex()).ToArray();

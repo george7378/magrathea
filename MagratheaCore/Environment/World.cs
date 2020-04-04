@@ -31,7 +31,7 @@ namespace MagratheaCore.Environment
 
         public DirectionLight Light { get; set; }
 
-        public StarDome StarDome { get; private set; }
+        public StarDome StarDome { get; set; }
 
         public Atmosphere Atmosphere { get; set; }
 
