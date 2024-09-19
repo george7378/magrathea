@@ -9,7 +9,7 @@ I think this project has a lot of potential, both as a base for games/simulation
 
 Don't panic, and remember to bring your towel!
 
-![Low level](https://github.com/george7378/magrathea/blob/master/_img/1.png)
-![On orbit](https://github.com/george7378/magrathea/blob/master/_img/2.png)
-![High altitude](https://github.com/george7378/magrathea/blob/master/_img/3.png)
-![Atmosphere](https://github.com/george7378/magrathea/blob/master/_img/4.png)
+![Low level](https://github.com/george7378/magrathea/blob/master/misc/readme/1.png)
+![On orbit](https://github.com/george7378/magrathea/blob/master/misc/readme/2.png)
+![High altitude](https://github.com/george7378/magrathea/blob/master/misc/readme/3.png)
+![Atmosphere](https://github.com/george7378/magrathea/blob/master/misc/readme/4.png)
